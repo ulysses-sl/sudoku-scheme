@@ -1,5 +1,5 @@
 ; Copyright 2014 Sak Lee (c) All rights reserved
-; Simple sudoku solver
+; Simple sudoku solver using constraint propagation and backtracking search
 ; Receives the sudoku configuration (empty=0) and prints solution
 ;
 ; TODO: implement backtrack search
