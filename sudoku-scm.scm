@@ -1,4 +1,5 @@
-; Copyright 2014 Sak Lee (c) All rights reserved
+; Copyright (c) 2014 Sak Lee All Rights Reserved
+; contact by mail@saklee.net
 ; Simple sudoku solver using constraint propagation and backtracking search
 ; Receives the sudoku configuration (empty=0) and prints solution
 ;
@@ -111,11 +112,14 @@
 
 ; check arc consistency, and do backtrack-search when done
 (define (check-arc-consistency board)
+  (display "Checking arc consistency... ")
   (letrec
     ((cac
        (lambda (board new-board)
          (if (hash-table-equal? board new-board)
-             (backtrack-search new-board)
+             (begin
+               (display "done") (newline)
+               (backtrack-search new-board))
              (let* ((bd new-board)
                     (new-bd (improve-arc-consistency (hash-table-copy bd))))
                (cac bd new-bd))))));
@@ -123,8 +127,11 @@
 
 ; TODO: implement backtrack search
 (define (backtrack-search board)
+  (display "Performing backtracking search... ")
   (if (check-if-done board)
-      board
+      (begin
+        (display "done") (newline)
+        board)
       (error "failed to find a solution")))
 
 (define (print-board board)
