@@ -130,7 +130,9 @@
 (define (print-board board)
   (let* ((solution (map (cut hash-table-ref board <>) board-coord))
          (coord-sol (zip board-coord solution)))
-    (for-each (lambda (x) (display (cadr x)) (if (= 9 (cadar x)) (newline))) coord-sol)))
+    (for-each (lambda (x)
+                (display (caadr x))
+                (if (= 9 (cadar x)) (newline) (display " "))) coord-sol)))
 
 (define (main)
   (let ((board (load-board)))
