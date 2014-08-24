@@ -1,9 +1,21 @@
 ; Copyright 2014 Sak Lee (c) All rights reserved
 ; Simple sudoku solver
-; Receives the sudoku configuration (empty=0) and print solution
+; Receives the sudoku configuration (empty=0) and prints solution
 ;
+; TODO: implement backtrack search
 
-(use srfi-1 srfi-69 srfi-42)
+(use srfi-1 srfi-69 srfi-42 data-structures)
+
+; function composition macro. ((compose f g) x) is equal to (f (g (x)))
+(define-syntax compose
+  (syntax-rules ()
+    ((compose)
+       (lambda args
+         (apply values args)))
+    ((compose f . fs)
+       (lambda args
+         (f (apply (compose . fs) args))))))
+
 
 ; helper function for hash-table-equal?
 (define (coord-less? coord1 coord2)
@@ -45,8 +57,8 @@
 (define (adjacent-coords coord)
   (let* ((r (car coord))
          (c (cadr coord))
-         (r0 (+ 1 (* 3 (quotient r 3))))
-         (c0 (+ 1 (* 3 (quotient c 3)))))
+         (r0 (+ 1 (* 3 (quotient (- r 1) 3))))
+         (c0 (+ 1 (* 3 (quotient (- c 1) 3)))))
     (remove (cute equal? coord <>) (lset-union
                                      equal?
                                      (list-ec (: i 1 10) (list r i))
@@ -55,12 +67,30 @@
 
 ; for choosing variable
 (define (minimum-remaining-value board)
-  (let (())))
+  (let* ((keys (hash-table-keys board))
+         (nums (map length (map (cut hash-table-ref board <>) keys)))
+         (keynum-pair (sort (zip nums keys) (lambda (x y) (<= (car x) (car y)))))
+         (keynum-pair-over-1 (filter (compose (cut < 1 <>) car) keynum-pair)))
+    (cadar keynum-pair-over-1)))
 
 ; for choosing value
-(define (least-constraining-value board coord) '())
+(define (least-constraining-value board coord)
+  (letrec ((choices ; all possible choices on the coord
+             (hash-table-ref board coord))
+           (adjacents-content ; creates a fresh copy of list containing all adjacents' choices
+             (lambda () (map (cut hash-table-ref board <>) (adjacent-coords coord))))
+           (delete-from-adjacents ; returns a fresh copy of list of all adjacents minus num
+             (lambda (num) (map (cut remove (cut = num <>) <>) (adjacents-content))))
+           (extract-minimum-count ; returns the most constrained count
+             (lambda (num) (min (map length (delete-from-adjacents num))))))
+    (let* ((constraint-measure ; most constrained count per each choice
+             (map extract-minimum-count choices))
+           (constraint-choices-pair
+             (sort (zip constraint-measure choices) (lambda (x y) (>= (car x) (car y))))))
+      (cadar constraint-choices-pair))))
 
-(define (check-if-done board))
+(define (check-if-done board)
+  (fold (lambda (x y) (and x y)) #t (map (compose (cut = 1 <>) length (cut hash-table-ref board <>)) board-coord)))
 
 ; delete a number from coordinate's list
 (define (hash-num-remove! bd coord num)
@@ -75,9 +105,9 @@
          (if (= 1 (length (hash-table-ref bd coord)))
              (for-each
                (cut hash-num-remove! bd <> (car (hash-table-ref bd coord)))
-               (adjacent-coords coord)))))))
-  (for-each (cut binary-improve board <>) board-coord)
-  board)
+               (adjacent-coords coord))))))
+    (for-each (cut binary-improve board <>) board-coord)
+    board))
 
 ; check arc consistency, and do backtrack-search when done
 (define (check-arc-consistency board)
@@ -88,10 +118,25 @@
              (backtrack-search new-board)
              (let* ((bd new-board)
                     (new-bd (improve-arc-consistency (hash-table-copy bd))))
-               (cac bd new-bd)))))))
-  (cac '() board))
+               (cac bd new-bd))))));
+    (cac (make-hash-table) board)))
 
-(define (backtrack-search board))
+; TODO: implement backtrack search
+(define (backtrack-search board)
+  (if (check-if-done board)
+      board
+      (error "failed to find a solution")))
+
+(define (print-board board)
+  (let* ((solution (map (cut hash-table-ref board <>) board-coord))
+         (coord-sol (zip board-coord solution)))
+    (for-each (lambda (x) (display (cadr x)) (if (= 9 (cadar x)) (newline))) coord-sol)))
 
 (define (main)
-  '())
+  (let ((board (load-board)))
+    ;(print-board board)
+    (print-board (check-arc-consistency board))))
+
+(main)
+
+;(for-each (lambda (x) (display (adjacent-coords x))) board-coord)
