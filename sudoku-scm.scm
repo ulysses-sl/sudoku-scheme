@@ -1,22 +1,11 @@
 ; Copyright (c) 2014 Sak Lee All Rights Reserved
-; contact by mail@saklee.net
+; Direct any question, concern, or reporting to mail@saklee.net
 ; Simple sudoku solver using constraint propagation and backtracking search
 ; Receives the sudoku configuration (empty=0) and prints solution
 ;
 ; TODO: implement backtrack search
 
 (use srfi-1 srfi-69 srfi-42 data-structures)
-
-; function composition macro. ((compose f g) x) is equal to (f (g (x)))
-(define-syntax compose
-  (syntax-rules ()
-    ((compose)
-       (lambda args
-         (apply values args)))
-    ((compose f . fs)
-       (lambda args
-         (f (apply (compose . fs) args))))))
-
 
 ; helper function for hash-table-equal?
 (define (coord-less? coord1 coord2)
@@ -147,5 +136,3 @@
     (print-board (check-arc-consistency board))))
 
 (main)
-
-;(for-each (lambda (x) (display (adjacent-coords x))) board-coord)
