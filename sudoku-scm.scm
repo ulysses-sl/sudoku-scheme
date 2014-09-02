@@ -6,23 +6,6 @@
 
 (use srfi-1 srfi-42 srfi-69 srfi-78 data-structures utils)
 
-; debug flag
-(define debug #t)
-
-(define (unit-test-suite)
-  (unit-test-coord-less?-different-r)
-  (unit-test-coord-less?-same-r-different-c)
-  (unit-test-coord-less?-same-r-same-c)
-  (check-report)
-  (check-reset!))
-
-(define (unit-test-coord-less?-different-r)
-  (check (coord-less? '(3 1) '(2 1)) => #f))
-(define (unit-test-coord-less?-same-r-different-c)
-  (check (coord-less? '(5 6) '(5 7)) => #t))
-(define (unit-test-coord-less?-same-r-same-c)
-  (check (coord-less? '(4 4) '(4 4)) => #t))
-
 ; tells which coordinate comes first between '(r1 c1) and '(r2 c2)
 (define (coord-less? coord1 coord2)
   (cond ((and (null? coord1) (null? coord2))
